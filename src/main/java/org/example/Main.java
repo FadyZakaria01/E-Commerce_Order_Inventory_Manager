@@ -1,9 +1,10 @@
 package org.example;
 
+import java.util.Optional;
 import java.util.Scanner;
 
 public class Main {
-    private static Scanner scanner = new Scanner(System.in);
+    private static final Scanner scanner = new Scanner(System.in);
 
     static void main() {
         TheStore store = new TheStore();
@@ -137,12 +138,11 @@ public class Main {
 
     public static void searchProductBYId(TheStore store) {
         int id = readInt("Enter product ID to search: ");
-        Product product = store.searchProductBYId(id);
-        if (product != null) {
-            System.out.println("Product found: " + product);
-        } else {
-            System.out.println("Product not found.");
-        }
+        store.searchProductBYId(id).ifPresentOrElse(
+                product -> System.out.println("Product found: " + product),
+                () -> System.out.println("Product not found.")
+        );
+
     }
 
     public static void addOrder(TheStore store) {
@@ -182,7 +182,7 @@ public class Main {
 
     public static void  searchOrderById(TheStore store) {
         int orderId = readInt("Enter order ID to search: ");
-        Order order = store.searchOrderById(orderId);
+       Order order = store.searchOrderById(orderId).orElse(null);
         if (order != null) {
             System.out.println("Order found: " + order);
         } else {

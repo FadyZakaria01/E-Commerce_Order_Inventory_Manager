@@ -57,18 +57,18 @@ public class TheStore {
         return true;
     }
 
-    public Product searchProductBYId(int id) {
+    public Optional<Product> searchProductBYId(int id) {
         if (productsById.containsKey(id)) {
-            return productsById.get(id);
+            return Optional.of(productsById.get(id));
         }
-        return null;
+        return Optional.empty();
     }
 
-    public Order searchOrderById(int orderId) {
+    public Optional<Order> searchOrderById(int orderId) {
         if (orders.containsKey(orderId)) {
-            return orders.get(orderId);
+            return Optional.of(orders.get(orderId));
         }
-        return null;
+        return Optional.empty();
     }
 
     public void displayAllProducts() {
@@ -77,10 +77,7 @@ public class TheStore {
             return;
         }
 
-        for (Product product : products) {
-            System.out.println(product);
-            System.out.println("-----------------------------");
-        }
+        products.forEach(System.out::println);
     }
 
     public void showAllCategories() {
@@ -89,9 +86,7 @@ public class TheStore {
             return;
         }
         System.out.println("Available Categories:");
-        for (String category : productCategory) {
-            System.out.println("- " + category);
-        }
+        productCategory.forEach(System.out::println);
     }
 
     public void displayProductsOrderedByPrice() {
@@ -99,21 +94,15 @@ public class TheStore {
             System.out.println("products is empty");
             return;
         }
-        List<Product> productList = new ArrayList<>(products);
-        Collections.sort(productList);
-        for (Product product : productList) {
-            System.out.println(product);
-            System.out.println("-----------------------------");
-        }
+        products.stream().sorted().forEach(System.out::println);
     }
 
     public void addOrder(Order order) {
-        if (orders.containsKey(order.getOrderId())) {
-            System.out.println("order already exit");
-            return;
+        Order existingOrder = orders.putIfAbsent(order.getOrderId(), order);
+        if (existingOrder != null) {
+            System.out.println("Order with ID " + order.getOrderId() + " already exists.");
         }
-        orders.put(order.getOrderId(), order);
-        System.out.println("order add successfully");
+        System.out.println("Order added successfully.");
     }
 
     public void addItemToOrder(int orderId, int productId, int quantity) {
@@ -168,15 +157,18 @@ public class TheStore {
             return;
         }
 
-        for (CartItem item : order.getItems()) {
+        boolean itemRemoved =order.getItems().removeIf(item -> {
             if (item.getProduct().getId() == productId) {
-                order.removeItem(item);
                 product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
-                System.out.println("Item removed from order successfully.");
-                return;
+                return true;
             }
+            return false;
+        });
+        if (!itemRemoved) {
+            System.out.println("Item not found in the order.");
+        } else {
+            System.out.println("Item removed from order successfully.");
         }
-        System.out.println("Item not found in the order.");
     }
 
     public void displayOrder(int id) {
@@ -241,7 +233,7 @@ public class TheStore {
             System.out.println("Order not found.");
             return;
         }
-        if (order.getStatus() == orderStatus.Delivered||order.getStatus() == orderStatus.Cancelled) {
+        if (order.getStatus() == orderStatus.Delivered || order.getStatus() == orderStatus.Cancelled) {
             System.out.println("Cannot cancel an order that is already delivered or cancelled.");
             return;
         }
@@ -280,7 +272,7 @@ public class TheStore {
     }
 
     public void removeOutOfStockProducts() {
-        int count =0;
+        int count = 0;
         Iterator<Product> iterator = products.iterator();
         while (iterator.hasNext()) {
             Product product = iterator.next();
@@ -297,18 +289,14 @@ public class TheStore {
 
     }
 
-    public void displayOrdersOrderedByTotal(){
+    public void displayOrdersOrderedByTotal() {
         if (orders.isEmpty()) {
             System.out.println("No orders available.");
             return;
         }
         List<Order> orderList = new ArrayList<>(orders.values());
-        Comparator<Order>byTotalComparator = Comparator.comparing(Order::getTotal);
-        orderList.sort(byTotalComparator);
-        for (Order order : orderList) {
-            System.out.println(order);
-            System.out.println("-----------------------------");
-        }
+        Comparator<Order> byTotalComparator = Comparator.comparing(Order::getTotal);
+        orderList.stream().sorted(byTotalComparator).forEach(System.out::println);
     }
 
 }
